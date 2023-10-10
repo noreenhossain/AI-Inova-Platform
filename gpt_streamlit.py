@@ -96,20 +96,21 @@ with col1_2:
 
     # Function to clear text box
     def clear_box():
-        st.session_state.output_text = ""
+        st.session_state.output_text = output
 
     # Make action buttons
     summary, clear, copy = st.columns([1,1,1])
 
-
+    # Get GPT summary and replace output with generated response
     with summary:
         st.button("Get GPT Summary", key="get_gpt_button", on_click=on_gpt_indication_click)
-        # if st.button("Get GPT Summary"):
-            # st.session_state.output_text = on_gpt_indication_click()
+        
+    # Clear the text in the output box
     with clear:
         if st.button("Clear Output", on_click = clear_box):
             del st.session_state.output_text
             st.session_state.output_text = "Blank"
+    # Copy the text in the output box
     with copy:
         if st.button('Copy Summary Text'):
             pyperclip.copy(a)
