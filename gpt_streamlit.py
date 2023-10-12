@@ -14,12 +14,21 @@ st.set_page_config(layout="wide")
 # Main page with 3 rows and 2 columns
 st.title("S&E GPT Deck Summarizer™")
 
+# get api key from gitignored api_key file
+def get_file_contents(filename):
+    """ Given a filename,
+        return the contents of that file
+    """
+    try:
+        with open(filename, 'r') as f:
+            # It's assumed our file contains a single line,
+            # with our API key
+            return f.read().strip()
+    except FileNotFoundError:
+        print("'%s' file not found" % filename)
+
 # OpenAI API Key
-<<<<<<< HEAD
-openai.api_key = "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"
-=======
-openai.api_key = ""
->>>>>>> cf91c3166391cc156700247fccaa71638db9dca5
+openai.api_key = get_file_contents("api_key")
 
 # Method to process uploaded PDFs
 def read_pdf(file):
