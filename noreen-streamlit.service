@@ -1,0 +1,12 @@
+[Unit]
+Description=NoreenStreamlit
+After=syslog.target network.target
+[Service]
+Restart=on-failure
+User=noreen.hossain@cerevel.com
+Group=cerevel
+WorkingDirectory=/home/noreen.hossain@cerevel.com/AI-Inova-Platform/
+#Environment="PATH=/home/ranjan.mannige@cerevel.com/miniconda3/bin:/home/ranjan.mannige@cerevel.com/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+ExecStart=/home/noreen.hossain@cerevel.com/streamlit run gpt_streamlit.py --server.port 8765
+[Install]
+WantedBy=multi-user.target

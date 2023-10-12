@@ -2,8 +2,8 @@
 import streamlit as st
 import openai
 from PyPDF2 import PdfReader
-import pyperclip
-
+import pyclip
+# import clipboard
 import docx2txt
 
 
@@ -12,10 +12,10 @@ import docx2txt
 st.set_page_config(layout="wide")
 
 # Main page with 3 rows and 2 columns
-st.title("GPT Deck Summarizer")
+st.title("S&E GPT Deck Summarizer™")
 
 # OpenAI API Key
-# openai.api_key = ""
+openai.api_key = ""
 
 # Method to process uploaded PDFs
 def read_pdf(file):
@@ -30,7 +30,7 @@ def read_pdf(file):
 
 # Default prompt text that can be modified in Streamlit window
 prompt_text = """Please provide a profile of the company described in this text, including if it is public or private,​ who the founders are, its founding date, and any parent companies if possible. Next, name the key asset described in the text in the format "Name of Asset (Name of Company)". Next, describe the key asset in two paragraphs, including key information about the stage it is in, and any future milestones mentioned. Next, describe how it compares to similar assets that exist. Next, repeat description for all other assets mentioned in the text. Finally, print "Summary Complete" """
-gpt_model = "gpt-4"
+# gpt_model = "gpt-4"
 
 
 # Setting up the document
@@ -71,10 +71,15 @@ with col1_1:
 
     st.button("Reset Prompt Text", on_click = reset_prompt)
 
+    gpt_model = st.selectbox(
+    'Which GPT Model do you want to use?',
+    ("gpt-4", 'gpt-3.5-turbo-16k'))
+
+
 # Generated Summary Box
 with col1_2:
     output = ""
-    a = st.text_area("GPT Summary of Deck",
+    a = st.text_area(f"GPT Summary of Deck using the {gpt_model} model",
         output,
         height=500,
         key="output_text",
@@ -99,7 +104,7 @@ with col1_2:
         st.session_state.output_text = output
 
     # Make action buttons
-    summary, clear, copy = st.columns([1,1,1])
+    summary, clear = st.columns([1,1])
 
     # Get GPT summary and replace output with generated response
     with summary:
@@ -111,15 +116,9 @@ with col1_2:
             del st.session_state.output_text
             st.session_state.output_text = "Blank"
     # Copy the text in the output box
-    with copy:
-        if st.button('Copy Summary Text'):
-            pyperclip.copy(a)
-            st.success('Text copied successfully!')
-
-
-    
-
-
-    
-
-    
+    # Pyperclip not working with Linux!!
+    # with copy:
+    #     if st.button('Copy Summary Text'):
+    #         pyclip.copy(a)
+    #         st.success('Text copied successfully!')
+  
