@@ -15,7 +15,11 @@ st.set_page_config(layout="wide")
 st.title("S&E GPT Deck Summarizer™")
 
 # OpenAI API Key
+<<<<<<< HEAD
 openai.api_key = "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"
+=======
+openai.api_key = ""
+>>>>>>> cf91c3166391cc156700247fccaa71638db9dca5
 
 # Method to process uploaded PDFs
 def read_pdf(file):
