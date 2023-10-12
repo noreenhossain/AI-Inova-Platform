@@ -2,7 +2,7 @@
 import streamlit as st
 import openai
 from PyPDF2 import PdfReader
-import pyclip
+# import pyclip
 # import clipboard
 import docx2txt
 
@@ -15,7 +15,7 @@ st.set_page_config(layout="wide")
 st.title("S&E GPT Deck Summarizer™")
 
 # OpenAI API Key
-openai.api_key = ""
+openai.api_key = "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"
 
 # Method to process uploaded PDFs
 def read_pdf(file):
