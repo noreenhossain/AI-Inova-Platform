@@ -2,7 +2,7 @@
 Description=NoreenStreamlit
 #After=syslog.target network.target
 [Service]
-Restart=on-failure
+#Restart=on-failure
 #User=noreen.hossain@cerevel.com
 User=root
 #Group=cerevel
