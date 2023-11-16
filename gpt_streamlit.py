@@ -4,6 +4,7 @@ import openai
 from PyPDF2 import PdfReader
 import docx2txt
 import pandas as pd
+import plotly as Plotly
 import plotly.express as px
 from datetime import datetime
 from pytz import timezone
@@ -175,12 +176,14 @@ def pie_visualization(inova_df, filtered_by, colorway=px.colors.sequential.Aggrn
     fig = px.pie(assets_by, values=assets_by["Company"], names=assets_by[filtered_by], title=f'Assets by {filtered_by}', hole=.3, color_discrete_sequence=colorway)
     fig.update_traces(textposition='inside', 
                      text=assets_by["Company"],
-                     textinfo='text', textfont_size=10)
+                     textinfo='text', textfont_size=18)
     fig.update_layout(legend=dict(
-    yanchor="top",
-    y = 0.99,
-    font=dict(size= 9)
+    orientation="h",
+    yanchor="top"
     ))
+    fig.update_layout(height = 750)
+    # Plotly.react(gd, data, layout, {toImageButtonOptions: {width: null, height: null}
+# })
 
     return fig
 
@@ -208,8 +211,7 @@ def dashboard():
         # Visualizations
 
         colorway = px.colors.sequential.Aggrnyl
-        # img_height = 500
-        # img_width = 800
+
 
         st.header("Number of Assets by Status", anchor=False)
         st.caption("Click on the expanders to view the asset information.")
@@ -237,23 +239,24 @@ def dashboard():
         st.divider()
 
         st.header("Pie Charts", anchor=False)
-        by_indication, by_secondary_indication = st.columns([1,1])
-        with by_indication:
-            st.subheader("Assets by Indication", anchor=False)
-            st.plotly_chart(pie_visualization(inova_data_df, "Primary Indication"))
+        # by_indication, by_secondary_indication = st.columns([1,1])
+        # with by_indication:
+        st.subheader("Assets by Indication", anchor=False)
+        fig_ind = pie_visualization(inova_data_df, "Primary Indication")
+        st.plotly_chart(fig_ind,  use_container_width=True)
+        # st.button(fig_ind.write_image("contour2.png"))
+        # with by_secondary_indication:
+        st.subheader("Assets by Secondary indication", anchor=False)
+        st.plotly_chart(pie_visualization(inova_data_df, "Secondary Indication"),  use_container_width=True)
 
-        with by_secondary_indication:
-            st.subheader("Assets by Secondary indication", anchor=False)
-            st.plotly_chart(pie_visualization(inova_data_df, "Secondary Indication"))
+        # by_moa, by_modality= st.columns([1,1])
+        # with by_moa:
+        st.subheader("Assets by Mechanism of Action", anchor=False)           
+        st.plotly_chart(pie_visualization(inova_data_df, "Mechanism of Action"),  use_container_width=True)
 
-        by_moa, by_modality= st.columns([1,1])
-        with by_moa:
-            st.subheader("Assets by Mechanism of Action", anchor=False)           
-            st.plotly_chart(pie_visualization(inova_data_df, "Mechanism of Action"))
-
-        with by_modality:
-            st.subheader("Assets by Modality", anchor=False)
-            st.plotly_chart(pie_visualization(inova_data_df, "Modality"))
+        # with by_modality:
+        st.subheader("Assets by Modality", anchor=False)
+        st.plotly_chart(pie_visualization(inova_data_df, "Modality"),  use_container_width=True)
 
 
        
