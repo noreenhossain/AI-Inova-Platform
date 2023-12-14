@@ -4,9 +4,11 @@ import openai
 from PyPDF2 import PdfReader
 import docx2txt
 import pandas as pd
+import plotly as Plotly
 import plotly.express as px
 from datetime import datetime
 from pytz import timezone
+import numpy as np
 
 
 # import clipman 
@@ -29,11 +31,6 @@ def get_file_contents(filename):
     except FileNotFoundError:
         print("'%s' file not found" % filename)
 
-# # Method to Copy Texts
-# def copy_clipboard(msg):
-#     ''' Copy `msg` to the clipboard '''
-#     with Popen(['xclip','-selection', 'clipboard'], stdin=PIPE) as pipe:
-#         pipe.communicate(input=msg.encode('utf-8'))
 
 # Method to process uploaded PDFs
 def read_pdf(file):
@@ -46,7 +43,18 @@ def read_pdf(file):
 
 	return all_page_text
 
-
+# Home page that the tool allows user to pick which tool they want to use
+def main_page():
+     st.header("Please select which tool you would like to use using the dropdown to the left!", anchor=False)
+     st.caption("Descriptions of each tool are listed below:")
+     st.subheader('GPT Summarizer', anchor=False)
+     st.write("The **GPT Summarizer** allows you to upload a deck or other text and receive a summary of the text using a preset prompt. The prompt can be adjusted, and the summary is generated using an OpenAI GPT model!")
+     with st.expander("Click here to get the instructions for use of the GPT Summarizer"):
+            st.write("[Link to documentation!](https://cerevel-my.sharepoint.com/:w:/p/noreen_hossain/EQ42gF8fpGlLq_vYxsCVJqsBwXFLgtMpBIFvM-0kFl7QOQ?e=KfJs7Q)")
+     st.subheader('Inova Dashboard', anchor=False)
+     st.write("The **Inova Dashboard** allows you to upload exported data from Inova, and produces a series of visualizations describing the data. The data is also listed at the end, for ease of understanding.")
+     
+# Page for GPT summarizer tool
 def summarizer():
 
     # Main page with 3 rows and 2 columns
@@ -94,11 +102,13 @@ def summarizer():
         with st.expander("Prompt", expanded=True):
                 prompt_box = st.text_area("Here is the prompt to summarize a deck. Feel free to adjust the prompt if needed.", height = 300, key = "prompt_box", value=prompt_text)
 
+        # method to reset prompt when button is pressed
         def reset_prompt():
             st.session_state.prompt_box = prompt_text
 
         st.button("Reset Prompt Text", on_click = reset_prompt)
 
+        # select which gpt model will be used to summarize text
         gpt_model = st.selectbox(
         'Which GPT Model do you want to use?',
         ("gpt-4", 'gpt-3.5-turbo-16k'))
@@ -106,6 +116,7 @@ def summarizer():
 
     # Generated Summary Box
     with col1_2:
+        # Box for generated summary
         output = ""
         a = st.text_area(f"GPT Summary of Deck using the {gpt_model} model",
             output,
@@ -156,32 +167,24 @@ def summarizer():
         #         st.success('Text copied successfully!')
 
 
-# Home page that the tool opens to
-def main_page():
-     st.header("Please select which tool you would like to use using the dropdown to the left!", anchor=False)
-     st.caption("Descriptions of each tool are listed below:")
-     st.subheader('GPT Summarizer', anchor=False)
-     st.write("The **GPT Summarizer** allows you to upload a deck or other text and receive a summary of the text using a preset prompt. The prompt can be adjusted, and the summary is generated using an OpenAI GPT model!")
-     with st.expander("Click here to get the instructions for use of the GPT Summarizer"):
-            st.write("[Link to documentation!](https://cerevel-my.sharepoint.com/:w:/p/noreen_hossain/EQ42gF8fpGlLq_vYxsCVJqsBwXFLgtMpBIFvM-0kFl7QOQ?e=KfJs7Q)")
-     st.subheader('Inova Dashboard', anchor=False)
-     st.write("The **Inova Dashboard** allows you to upload exported data from Inova, and produces a series of visualizations describing the data. The data is also listed at the end, for ease of understanding.")
-     
-
 
 # function to produce pie visualizations within the dashboard page
 def pie_visualization(inova_df, filtered_by, colorway=px.colors.sequential.Aggrnyl):
+    # Group the assets we want to look at 
     assets_by = inova_df.groupby([filtered_by], dropna = True).count().reset_index()
+    # Plot those assets in a pie chart
     fig = px.pie(assets_by, values=assets_by["Company"], names=assets_by[filtered_by], title=f'Assets by {filtered_by}', hole=.3, color_discrete_sequence=colorway)
     fig.update_traces(textposition='inside', 
                      text=assets_by["Company"],
-                     textinfo='text', textfont_size=10)
+                     textinfo='text', textfont_size=22)
     fig.update_layout(legend=dict(
+    orientation="h",
     yanchor="top",
-    y = 0.99,
-    font=dict(size= 9)
+    font=dict(size=14)
     ))
-
+    fig.update_layout(height = 750)
+    # Plotly.react(gd, data, layout, {toImageButtonOptions: {width: null, height: null}
+# })
     return fig
 
 # Function to save filtered dataframes
@@ -190,16 +193,21 @@ def convert_df(df):
     return df.to_csv().encode('utf-8')
 
 
+# Create page for the Inova Visualization Dashboards
 def dashboard():
-    # File Uploader
+    # Title and subtitle
     st.header("Inova Dashboard", anchor=False)
     st.write("Here is a visual dashboard of the data stored in the Inova ")
+    # File Uploader
     docx_file = st.file_uploader("Upload File",type=['xls'])
     st.subheader("Please upload exported data to produce visualizations!", anchor=False)
     st.caption("Note: Visualizations can all be expanded and filtered. You can also save the view of a graph as a PNG.")
+    
+    # Create empty df as a placeholder
     inova_data_df = pd.DataFrame()
 
-    # Read the exported Inova Data into a viewable/interactive dataframe - used for visualizations too
+    # File reader
+    # Read the exported Inova Data into a a dataframe, then used for generating visualizations
     if docx_file is not None:
         st.divider()
         inova_data = pd.read_html(docx_file)
@@ -207,16 +215,17 @@ def dashboard():
         
         # Visualizations
 
+        # Set the colors for all graph
         colorway = px.colors.sequential.Aggrnyl
-        # img_height = 500
-        # img_width = 800
 
+        # Assets by Status dropdowns
         st.header("Number of Assets by Status", anchor=False)
         st.caption("Click on the expanders to view the asset information.")
         status_df = inova_data_df.groupby(["Status"], dropna = True).count().reset_index()[["Status", "Company"]]
         ncol = len(status_df)
         cols = st.columns(ncol)
 
+        # For each status that exists, create a dropdown and list the assets that have that status
         for i, x in enumerate(cols):
             status = status_df.iloc[i][0]
             num = status_df.iloc[i][1]
@@ -236,78 +245,127 @@ def dashboard():
                 
         st.divider()
 
+        # Pie charts start here
+
         st.header("Pie Charts", anchor=False)
-        by_indication, by_secondary_indication = st.columns([1,1])
-        with by_indication:
-            st.subheader("Assets by Indication", anchor=False)
-            st.plotly_chart(pie_visualization(inova_data_df, "Primary Indication"))
 
-        with by_secondary_indication:
-            st.subheader("Assets by Secondary indication", anchor=False)
-            st.plotly_chart(pie_visualization(inova_data_df, "Secondary Indication"))
+        # The columns were part of old view, with 2 visualizations per row
+        # They now are listed one after another 
+        # by_indication, by_secondary_indication = st.columns([1,1])
+        # with by_indication:
+        st.subheader("Assets by Indication", anchor=False)
+        fig_ind = pie_visualization(inova_data_df, "Primary Indication")
+        st.plotly_chart(fig_ind,  use_container_width=True)
+        # st.button(fig_ind.write_image("contour2.png"))
+        # with by_secondary_indication:
+        st.subheader("Assets by Secondary indication", anchor=False)
+        st.plotly_chart(pie_visualization(inova_data_df, "Secondary Indication"),  use_container_width=True)
 
-        by_moa, by_modality= st.columns([1,1])
-        with by_moa:
-            st.subheader("Assets by Mechanism of Action", anchor=False)           
-            st.plotly_chart(pie_visualization(inova_data_df, "Mechanism of Action"))
+        # by_moa, by_modality= st.columns([1,1])
+        # with by_moa:
+        st.subheader("Assets by Mechanism of Action", anchor=False)           
+        st.plotly_chart(pie_visualization(inova_data_df, "Mechanism of Action"),  use_container_width=True)
 
-        with by_modality:
-            st.subheader("Assets by Modality", anchor=False)
-            st.plotly_chart(pie_visualization(inova_data_df, "Modality"))
+        # with by_modality:
+        st.subheader("Assets by Modality", anchor=False)
+        st.plotly_chart(pie_visualization(inova_data_df, "Modality"),  use_container_width=True)
 
 
-       
+       # "Custom" pie chart, filtered by any column in the data df
         attribute = st.selectbox("Select value to produce 'Assets by _____' visualization.", (inova_data_df.loc[:, ~inova_data_df.columns.isin(['Name', 'Company', 'Last Modified On', 'Created On'])]).columns)  
         st.plotly_chart(pie_visualization(inova_data_df, attribute), use_container_width=True)
 
+
+        # Bar Charts begin
         st.divider()
         st.header("Bar Charts", anchor=False)
 
+
+        # Bar chart showing number of assets per indication, broken down further by their modality
         indication_modality = inova_data_df.groupby(["Primary Indication", "Modality"], dropna = True).count().reset_index()
         indication_modality_fig = px.bar(indication_modality, x="Primary Indication", y="Company", color="Modality", title="Assets by Primary Indication and Modality", height = 900, color_discrete_sequence=colorway, labels={'Primary Indication': 'Primary Indication', 'Company':'Number of Assets'})
         indication_modality_fig.update_layout(legend=dict(
-            font=dict(size= 9)
+            font=dict(size= 12)
             ))
         st.plotly_chart(indication_modality_fig, use_container_width=True)
         
-
+        # Bar chart showing number of assets per development phase, broken down further by their indication
         indication_stage = inova_data_df.groupby(["Highest Development Phase","Primary Indication"], dropna = True).count().reset_index()
         indication_stage_fig = px.bar(indication_stage, x="Highest Development Phase", y="Company", color="Primary Indication", title="Assets by Development Phase and Indication", height=900, color_discrete_sequence=colorway, labels={'Highest Development Phase': 'Development Phase', 'Company':'Number of Assets'})
         indication_stage_fig.update_layout(legend=dict(
-            font=dict(size= 9)
+            font=dict(size= 12)
             ))
         # change the order of the column labels    
         indication_stage_fig.update_xaxes(categoryorder='array', categoryarray= ["Discovery", "Research Tool", "Hit Finding", "Hit to Lead", "Lead to Candidate", "Preclinical/IND-Stage", "Clinical", "Phase 1 Clinical", "Phase 2 Clinical", "Phase 3 Clinical", "Approved"])
-
         st.plotly_chart(indication_stage_fig, use_container_width=True)
 
+
+        # Dot plot of assets 
         st.divider()
-        status_filter = st.selectbox("Select status from dropdown to filter the visualization by status", list(inova_data_df["Status"].unique()))  
-        inova_status = inova_data_df.loc[inova_data_df['Status'] == status_filter][["Company", "Primary Indication", "Created On", "Last Modified On", "Name"]]
-        inova_status['Created On'] = pd.to_datetime(inova_status['Created On'])
-        inova_status['Last Modified On'] = pd.to_datetime(inova_status['Last Modified On'])
-        inova_status.sort_values(by='Created On', inplace = True) 
 
-        ltm_time_chart = px.scatter(inova_status, x="Created On", y="Last Modified On", color = "Name",  color_discrete_sequence=colorway,  title=f"Creation and Last Modification of {status_filter} Assets", height=700, width=700)
-        ltm_time_chart.update_traces(hovertemplate=' Asset Created On: %{x} <br>Asset Last Modified: %{y}', showlegend=False)
-        st.plotly_chart(ltm_time_chart, use_container_width=True)
+        # Set title as default
+        graph_title = f"Creation Date, Status, and Development Phase of All Assets"
 
+        # Filling null values so they graph properly
+        inova_data_df = inova_data_df.replace(np.nan, None)
+        inova_data_df["Highest Development Phase"] = inova_data_df["Highest Development Phase"].fillna('None Listed')
 
+        # Make copy of the original df
+        df_filtered_subset = inova_data_df
+
+        # Set placeholder for filtering 
+        subset_filter = ""
+
+        # Create the two filters for data used to make graph
+        column_filter, value_filter= st.columns([1,1])
+
+        # initial filter based on columns of data
+        with column_filter:
+            columns_list = list(inova_data_df.columns)
+            # add option to show every asset
+            columns_list.insert(0, "Show All Assets")
+            # Let user pick which column to filter by
+            column = st.selectbox("Select which column you want to filter by", columns_list)
+        # If user picks a more specific filter
+        if column != "Show All Assets":
+            # Set filters for data to be more specific, change the graph title, and filter the df
+            with value_filter:
+                subset_filter = st.selectbox(f"Select which {column} you want to filter by.", (list(inova_data_df[column].unique())))
+                graph_title = f"Creation Date, Status, and Development Phase of {column}: {subset_filter} Assets"
+                df_filtered_subset = inova_data_df.loc[inova_data_df[column]==subset_filter]
+
+        # Clean the filtered df to make graph more informative
+        df_filtered_subset["Asset Discovery Date"] = pd.to_datetime(df_filtered_subset["Asset Discovery Date"])
+        df_filtered_subset["Last Modified On"] = pd.to_datetime(df_filtered_subset["Last Modified On"])
+        df_filtered_subset["Highest Development Phase"] = df_filtered_subset["Highest Development Phase"].fillna('None Listed')
+        df_filtered_subset["Modality"] = df_filtered_subset["Modality"].fillna('None Listed')
+
+        # Graph the scatterplot with the appropriately filtered data
+        filtered_graph= px.scatter(df_filtered_subset, x="Asset Discovery Date", y="Status", color = "Highest Development Phase", title=graph_title, color_discrete_sequence=px.colors.qualitative.Prism, hover_data=['Name', 'Status', 'Modality', 'Highest Development Phase'])
+        # filtered_graph.add_vline()
+
+        # Show the plot after filtering 
+        st.plotly_chart(filtered_graph, use_container_width=True)
+        # Show filtered df
+        with st.expander(f"Click here to view assets by the selected filter: {column} {subset_filter}"):
+            st.dataframe(df_filtered_subset)
+
+        # Show df of all data from original df
         st.divider()
         with st.expander("Click here to view the uploaded raw data"):
             st.dataframe(inova_data_df)
         
 
 
-
+# Pages of the platform
+# Functions are run when page is selected, displaying all the code within each function
 page_names_to_funcs = {
     "Home": main_page,
     "GPT Summarizer": summarizer,
     "Inova Data Dashboard": dashboard
 }
 
+# Dropdown to select which page you want displayed
 selected_page = st.sidebar.selectbox("Select a page", page_names_to_funcs.keys())
 page_names_to_funcs[selected_page]()
 
-
-# add stripe at the top for dashboard with status numbers and stuff
