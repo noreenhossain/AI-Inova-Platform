@@ -173,18 +173,19 @@ def pie_visualization(inova_df, filtered_by, colorway=px.colors.sequential.Aggrn
     # Group the assets we want to look at 
     assets_by = inova_df.groupby([filtered_by], dropna = True).count().reset_index()
     # Plot those assets in a pie chart
-    fig = px.pie(assets_by, values=assets_by["Company"], names=assets_by[filtered_by], title=f'Assets by {filtered_by}', hole=.3, color_discrete_sequence=colorway)
+    fig = px.pie(assets_by, values=assets_by["Company"], names=assets_by[filtered_by], title=f'Assets by {filtered_by}', hole=.3, height = 750, color_discrete_sequence=colorway)
     fig.update_traces(textposition='inside', 
                      text=assets_by["Company"],
-                     textinfo='text', textfont_size=22)
+                     textinfo='text', textfont_size=20)
     fig.update_layout(legend=dict(
     orientation="h",
     yanchor="top",
-    font=dict(size=14)
-    ))
-    fig.update_layout(height = 750)
-    # Plotly.react(gd, data, layout, {toImageButtonOptions: {width: null, height: null}
-# })
+    y=-0.02,
+    xanchor="right",
+    x=1,
+    entrywidthmode='fraction',
+    entrywidth = 0.5
+))
     return fig
 
 # Function to save filtered dataframes
@@ -249,7 +250,7 @@ def dashboard():
 
         st.header("Pie Charts", anchor=False)
 
-        # The columns were part of old view, with 2 visualizations per row
+        # The columns were part of old view, with 2 columns of visualizations
         # They now are listed one after another 
         # by_indication, by_secondary_indication = st.columns([1,1])
         # with by_indication:
